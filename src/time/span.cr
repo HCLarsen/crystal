@@ -537,54 +537,6 @@ struct Float
   end
 end
 
-# Represents a number of months passed. Used for shifting `Time`s by a
-# specified number of months.
-#
-# ```
-# Time.local(2016, 2, 1) + 13.months # => 2017-03-01 00:00:00
-# Time.local(2016, 2, 29) + 2.years  # => 2018-02-28 00:00:00
-# ```
-struct Time::MonthSpan
-  # The number of months.
-  getter value : Int64
-
-  def initialize(value : Int)
-    @value = value.to_i64
-  end
-
-  # Returns a `Time` that happens N months after now.
-  def from_now : Time
-    Time.local + self
-  end
-
-  # Returns a `Time` that happens N months before now.
-  def ago : Time
-    Time.local - self
-  end
-end
-
-struct Int
-  # Returns a `Time::MonthSpan` of `self` months.
-  def months : Time::MonthSpan
-    Time::MonthSpan.new(self)
-  end
-
-  # ditto
-  def month : Time::MonthSpan
-    months
-  end
-
-  # Returns a `Time::MonthSpan` of `self` years.
-  def years : Time::MonthSpan
-    Time::MonthSpan.new(self * 12)
-  end
-
-  # ditto
-  def year : Time::MonthSpan
-    years
-  end
-end
-
 # Represents a period of time measured in calendar units.
 # Used when time is being measured across days, months or years.
 #
