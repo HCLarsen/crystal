@@ -41,13 +41,15 @@ describe Time::Span do
 
   it "max days" do
     expect_overflow do
-      Int64::MAX.days
+      days = Int64::MAX
+      Time::Span.new days, 0, 0, 0, 0
     end
   end
 
   it "min days" do
     expect_overflow do
-      Int64::MIN.days
+      days = Int64::MIN
+      Time::Span.new days, 0, 0, 0, 0
     end
   end
 
@@ -160,7 +162,6 @@ describe Time::Span do
   end
 
   it "test int extension methods" do
-    1_000_000.days.to_s.should eq("1000000.00:00:00")
     12.microseconds.to_s.should eq("00:00:00.000012000")
     -12.microseconds.to_s.should eq("-00:00:00.000012000")
   end
@@ -280,8 +281,46 @@ describe Time::Span do
     1.minutes.should eq(60.seconds)
     1.hour.should eq(60.minutes)
     1.hours.should eq(60.minutes)
-    1.week.should eq(7.days)
-    2.weeks.should eq(14.days)
-    1.1.weeks.should eq(7.7.days)
   end
+end
+
+describe Time::DateSpan do
+   it "test total years" do
+     date_span = Time::DateSpan.new(5, 6, 10)
+     date_span.total_years.should eq(5.527378507871321)
+   end
+
+   it "test compare" do
+     t1 = Time::DateSpan.new(3, 5, 18)
+     t2 = Time::DateSpan.new(3, 6, 18)
+
+     (t1 <=> t2).should eq(-1)
+     (t2 <=> t1).should eq(1)
+     (t2 <=> t2).should eq(0)
+
+     (t1 == t2).should be_false
+     (t1 > t2).should be_false
+     (t1 >= t2).should be_false
+     (t1 != t2).should be_true
+     (t1 < t2).should be_true
+     (t1 <= t2).should be_true
+   end
+
+   it "test equals" do
+     t1 = Time::DateSpan.new(3, 5, 18)
+     t2 = Time::DateSpan.new(3, 5, 18)
+
+     (t1 == t2).should be_true
+     (t1 == "hello").should be_false
+   end
+
+   it "test int extension methods" do
+     20.days.should eq(Time::DateSpan.new(0, 0, 20))
+     4.weeks.should eq(Time::DateSpan.new(0, 0, 28))
+     6.months.should eq(Time::DateSpan.new(0, 6, 0))
+     10.years.should eq(Time::DateSpan.new(10, 0, 0))
+     1.week.should eq(7.days)
+     2.weeks.should eq(14.days)
+     1.1.weeks.should eq(7.7.days)
+   end
 end

@@ -584,3 +584,112 @@ struct Int
     years
   end
 end
+
+# Represents a period of time measured in calendar units.
+# Used when time is being measured across days, months or years.
+#
+# ```
+# span = Time::DateSpan.new(5, 10, 15)
+# span.years   # => 5
+# span.months # => 10
+# span.days # => 15
+# ```
+#
+struct Time::DateSpan
+  include Comparable(self)
+
+  @months : Int32
+  @days : Int32
+
+  # Creates a DateSpan instance from a combination of years, months,
+  # and days.
+  def initialize(years : Int, months : Int, days : Int)
+    @months = (years * 12 + months).to_i
+    @days = days.to_i
+  end
+
+  # Returns the number of full years represented by the DateSpan.
+  #
+  # ```
+  # Time::DateSpan.new(5, 6, 7).years #=> 5
+  # ```
+  def years : Int32
+    @months / 12
+  end
+
+  # Returns the number of full months represented by the DateSpan.
+  #
+  # ```
+  # Time::DateSpan.new(5, 6, 7).months #=> 6
+  # ```
+  def months : Int32
+    @months % 12
+  end
+
+  # Returns the number of days represented by the DateSpan.
+  #
+  # ```
+  # Time::DateSpan.new(5, 6, 7).days #=> 7
+  # ```
+  def days : Int32
+    @days
+  end
+
+  # Returns the span as a float in number of years.
+  #
+  # Note: This is based on full orbit of the Earth around
+  # the sun. As such, days equate to 1 / 365.25 of one year.
+  #
+  # ```
+  # Time::DateSpan.new(5, 6, 0).total_years #=> 5.5
+  # ```
+  def total_years : Float64
+    @months / 12.0 + @days / 365.25
+  end
+
+  def <=>(other : self)
+    total_years <=> other.total_years
+  end
+end
+
+struct Int
+  # Returns a `Time::DateSpan` of `self` years.
+  def years : Time::DateSpan
+    Time::DateSpan.new(self, 0, 0)
+  end
+
+  # ditto
+  def year : Time::DateSpan
+    years
+  end
+
+  # Returns a `Time::DateSpan` of `self` months.
+  def months : Time::DateSpan
+    Time::DateSpan.new(0, self, 0)
+  end
+
+  # ditto
+  def month : Time::DateSpan
+    months
+  end
+
+  # Returns a `Time::DateSpan` of `self` weeks.
+  def weeks : Time::DateSpan
+    Time::DateSpan.new(0, 0, self * 7)
+  end
+
+  # ditto
+  def week : Time::DateSpan
+    weeks
+  end
+
+  # Returns a `Time::DateSpan` of `self` days.
+  def days : Time::DateSpan
+    Time::DateSpan.new(0, 0, self)
+  end
+
+  # ditto
+  def day : Time::DateSpan
+    days
+  end
+end
