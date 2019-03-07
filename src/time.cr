@@ -566,7 +566,7 @@ struct Time
 
   # Returns a copy of this `Time` with *span* added.
   #
-  # It adds the number of months with overflow increasing the year.
+  # It adds the number of days, months and years, with overflow applied.
   # If the resulting day-of-month would be invalid, it is adjusted to the last
   # valid day of the moneth.
   #
@@ -578,13 +578,13 @@ struct Time
   #
   # If the resulting date-time is ambiguous due to time zone transitions,
   # a correct time will be returned, but it does not guarantee which.
-  def +(span : Time::MonthSpan) : Time
-    shift months: span.value.to_i
+  def +(span : Time::DateSpan) : Time
+    shift days: span.days, months: span.months, years: span.years
   end
 
   # Returns a copy of this `Time` with *span* subtracted.
   #
-  # It adds the number of months with overflow decreasing the year.
+  # It subtracts the number of days, months and years, with overflow applied.
   # If the resulting day-of-month would be invalid, it is adjusted to the last
   # valid day of the moneth.
   #
@@ -596,8 +596,8 @@ struct Time
   #
   # If the resulting date-time is ambiguous due to time zone transitions,
   # a correct time will be returned, but it does not guarantee which.
-  def -(span : Time::MonthSpan) : Time
-    shift months: -span.value.to_i
+  def -(span : Time::DateSpan) : Time
+    shift days: -span.days, months: -span.months, years: -span.years
   end
 
   # Returns a copy of this `Time` shifted by the number of *seconds* and
@@ -686,8 +686,8 @@ struct Time
             hours : Int = 0, minutes : Int = 0, seconds : Int = 0, nanoseconds : Int = 0)
     seconds = seconds.to_i64
 
-    # Skip the entire month-based calculations if year and month are zero
-    if years.zero? && months.zero?
+    # Skip the entire month-based calculations if year, month and day are zero
+    if years.zero? && months.zero? && days.zero?
       # Using offset_seconds with applied zone offset so that calculations
       # are applied to the equivalent UTC representation of this local time.
       seconds += offset_seconds

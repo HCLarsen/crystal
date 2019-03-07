@@ -279,10 +279,10 @@ describe Time do
           start = Time.local(2011, 12, 25, 0, 0, 0, location: samoa)
 
           plus_one_week = start.shift days: 7
-          plus_one_week.should eq start + 6.days
+          plus_one_week.should eq start + Time::Span.new(6, 0, 0, 0)
 
           plus_one_year = start.shift years: 1
-          plus_one_year.should eq start + 365.days # 2012 is a leap year so it should've been 366 days, but 2011-12-28 was skipped
+          plus_one_year.should eq start + Time::Span.new(365, 0, 0, 0) # 2012 is a leap year so it should've been 366 days, but 2011-12-28 was skipped
         end
       end
 
@@ -324,7 +324,7 @@ describe Time do
       it "out of range max" do
         time = Time.utc(2002, 2, 25, 15, 25, 13)
         expect_raises ArgumentError do
-          time + 10000000.days
+          time + Time::Span.new(10000000, 0, 0, 0)
         end
       end
 
@@ -339,7 +339,7 @@ describe Time do
       it "out of range min" do
         time = Time.utc(2002, 2, 25, 15, 25, 13)
         expect_raises ArgumentError do
-          time - 10000000.days
+          time - Time::Span.new(10000000, 0, 0, 0)
         end
       end
 
@@ -349,6 +349,103 @@ describe Time do
         expect_raises ArgumentError do
           time.shift days: -10000000
         end
+      end
+    end
+
+    describe "adds date spans" do
+      it "adds days" do
+        t = Time.utc 2014, 10, 30, 21, 18, 13
+
+        t2 = t + Time::DateSpan.new(0, 0, 1)
+        t2.should eq Time.utc(2014, 10, 31, 21, 18, 13)
+
+        t2 = t + Time::DateSpan.new(0, 0, 6)
+        t2.should eq Time.utc(2014, 11, 5, 21, 18, 13)
+      end
+
+      it "adds days over DST" do
+        location = Time::Location.load("America/Toronto")
+        t = Time.local(2019, 3, 9, 13, 37, location: location)
+
+        t2 = t + Time::DateSpan.new(0, 0, 1)
+        t2.should eq Time.local(2019, 3, 10, 13, 37, location: location)
+      end
+
+      it "adds months" do
+        t = Time.utc 2014, 10, 31, 21, 18, 13
+
+        t2 = t + Time::DateSpan.new(0, 1, 0)
+        t2.should eq Time.utc(2014, 11, 30, 21, 18, 13)
+
+        t2 = t + Time::DateSpan.new(0, -1, 0)
+        t2.should eq Time.utc(2014, 9, 30, 21, 18, 13)
+
+        t2 = t + Time::DateSpan.new(0, 12, 0)
+        t2.should eq Time.utc(2015, 10, 31, 21, 18, 13)
+      end
+
+      it "adds years" do
+        t = Time.utc 2014, 10, 30, 21, 18, 13
+
+        t2 = t + Time::DateSpan.new(1, 0, 0)
+        t2.should eq Time.utc(2015, 10, 30, 21, 18, 13)
+
+        t2 = t + Time::DateSpan.new(-2, 0, 0)
+        t2.should eq Time.utc(2012, 10, 30, 21, 18, 13)
+      end
+
+      it "adds combinations of days, months and years" do
+        t = Time.utc 2014, 10, 31, 21, 18, 13
+
+        t2 = t + Time::DateSpan.new(0, 1, 5)
+        t2.should eq Time.utc(2014, 12, 5, 21, 18, 13)
+
+        t2 = t + Time::DateSpan.new(1, 2, 5)
+        t2.should eq Time.utc(2016, 1, 5, 21, 18, 13)
+      end
+    end
+
+    describe "subracts date spans" do
+      it "subtracts days" do
+        t = Time.utc 2014, 10, 31, 21, 18, 13
+
+        t2 = t - Time::DateSpan.new(0, 0, 1)
+        t2.should eq Time.utc(2014, 10, 30, 21, 18, 13)
+
+        t = Time.utc 2014, 10, 5, 21, 18, 13
+        t2 = t - Time::DateSpan.new(0, 0, 6)
+        t2.should eq Time.utc(2014, 9, 29, 21, 18, 13)
+      end
+
+      it "subtracts over DST" do
+        location = Time::Location.load("America/Toronto")
+        t = Time.local(2019, 3, 10, 13, 37, location: location)
+
+        t2 = t - Time::DateSpan.new(0, 0, 1)
+        t2.should eq Time.local(2019, 3, 9, 13, 37, location: location)
+      end
+
+      it "subtracts months" do
+        t = Time.utc 2014, 10, 31, 21, 18, 13
+
+        t2 = t - Time::DateSpan.new(0, 1, 0)
+        t2.should eq Time.utc(2014, 9, 30, 21, 18, 13)
+
+        t2 = t - Time::DateSpan.new(0, 6, 0)
+        t2.should eq Time.utc(2014, 4, 30, 21, 18, 13)
+
+        t2 = t - Time::DateSpan.new(0, 12, 0)
+        t2.should eq Time.utc(2013, 10, 31, 21, 18, 13)
+      end
+
+      it "subtracts years" do
+        t = Time.utc 2014, 10, 31, 21, 18, 13
+
+        t2 = t - Time::DateSpan.new(1, 0, 0)
+        t2.should eq Time.utc(2013, 10, 31, 21, 18, 13)
+
+        t2 = t - Time::DateSpan.new(-2, 0, 0)
+        t2.should eq Time.utc(2016, 10, 31, 21, 18, 13)
       end
     end
 
@@ -820,8 +917,8 @@ describe Time do
   typeof(Time.local.year)
   typeof(1.minute.from_now.year)
   typeof(1.minute.ago.year)
-  typeof(1.month.from_now.year)
-  typeof(1.month.ago.year)
+  # typeof(1.month.from_now.year)
+  # typeof(1.month.ago.year)
   typeof(Time.local.to_utc)
   typeof(Time.local.to_local)
 end
